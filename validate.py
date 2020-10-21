@@ -3,6 +3,7 @@ import hmac
 import hashlib
 import base64
 import logging
+import traceback
 
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
@@ -24,3 +25,34 @@ def validate_source(event):
 
     logger.debug("Drop through in validate_source")
     return False
+
+                             
+def lambda_handler(event, context):
+    try:
+        logger.debug(f"Event was '{event}'")
+        if not .validate_source(event):
+            logger.error("Message Authentication failed")
+            return {'statusCode': 403, 'body': json.dumps({"Text": f"Message Authentication failed"})}
+
+        # Carry on happily
+        logger.debug(event.get('body'))
+        body = event.get('body')
+        body = json.loads(body)
+                             
+        # Whatever
+                             
+    except Exception as err:
+        logger.error(err)
+        traceback.print_tb(err.__traceback__)
+        body = {"type": "message",
+            "text": f"Tell your friendly SysEng there was an error: {err}"
+        }
+                             
+        return { 'statusCode': 200, 'body': json.dumps(body) }
+
+                             
+    body = {"type": "message",
+            "text": "This is a response. I hope you like it."
+        }
+
+    return { 'statusCode': 200, 'body': json.dumps(body) }
